@@ -21,9 +21,8 @@ import phx.Polygon;
 import phx.Shape;
 import phx.Vector;
 import phx.World;
-/**
- * @author Joshua Granick
- */
+
+
 class Main extends Sprite {
 	
 	
@@ -40,7 +39,8 @@ class Main extends Sprite {
 	var s:Sprite;
 	var rect:Rectangle;
 	private var world:World;
-	public static var BOX_SIZE:Int = 20;
+	public static inline var BOX_SIZE:Int = 20;
+	public static var shape:Shape;
 	
 	public function new () {
 		super ();
@@ -48,16 +48,11 @@ class Main extends Sprite {
 	}
 
 	private function construct () {
-		
-		trace("Hello!!!!!!");
-		
+
 		stage.align = StageAlign.TOP_LEFT;
 		stage.scaleMode = StageScaleMode.NO_SCALE;
 		
-		
-		
 		bData = Assets.getBitmapData("assets/nme.png");
-		logo = new Bitmap (bData);
 		stage.addEventListener(MouseEvent.CLICK, logo_click);
 		
 		resize ();
@@ -66,6 +61,7 @@ class Main extends Sprite {
 		var bf = new SortedList();
 		world = new World(size, bf);
 		world.gravity = new Vector(0, 0.9);
+		world.sleepEpsilon = 0;
 		
 		createBox(-20, 0, 40, sh, false);
 		createBox(sw-20, 0, 40, sh, false);
@@ -84,7 +80,7 @@ class Main extends Sprite {
 			createBox(Math.random() * stage.stageWidth, Math.random() * stage.stageHeight, BOX_SIZE, BOX_SIZE, true);
 		}
 		
-		addChild (logo);
+		//addChild (logo);
 		
 		var f = new FPS();
 		f.textColor = 0xFF0000;
@@ -97,12 +93,16 @@ class Main extends Sprite {
 		
 		ax = ay = 0;
 		
+		shape = Shape.makeBox(BOX_SIZE, BOX_SIZE);
 	}
 	
 	private function createBox (x:Float, y:Float, width:Float, height:Float, dynamicBody:Bool):Body {
 		if (dynamicBody) {
 			var b:Body = new Body(x, y);
-			b.addShape(Shape.makeBox(width, height));
+			var shape:Shape = Shape.makeBox(width, height);
+			//shape.material.friction = 0.5;
+			b.addShape(shape);
+			
 			//b.addShape(new phx.Circle(width/2, new Vector(0,0)));
 			b.updatePhysics();
 			world.addBody(b);
@@ -147,23 +147,24 @@ class Main extends Sprite {
 			drawList[i++] = -c.a;
 		}
 		s.graphics.clear();
-		s.graphics.drawTiles(tilesheet, drawList, false, Graphics.TILE_SCALE | Graphics.TILE_ROTATION);
+		tilesheet.drawTiles(s.graphics, drawList, false, Tilesheet.TILE_SCALE | Tilesheet.TILE_ROTATION);
+		//s.graphics.drawTiles(tilesheet, drawList, false, Graphics.TILE_SCALE | Graphics.TILE_ROTATION);
 	}
 	
 	private function logo_click(e:MouseEvent):Void 
 	{
-		if (logo.hitTestPoint(e.stageX, e.stageY)) {
+		//if (logo.hitTestPoint(e.stageX, e.stageY)) {
 			for (i in 0...50) {
 				var b = createBox(e.stageX, e.stageY, BOX_SIZE, BOX_SIZE, true);
 				b.setSpeed(Math.random()*20-10, Math.random()*20-10);
 			}
-		}
+		//}
 	}
 	
 	
 	private function resize () {
-		logo.x = (stage.stageWidth - logo.width) / 2;
-		logo.y = (stage.stageHeight - logo.height) / 2;
+		//logo.x = (stage.stageWidth - logo.width) / 2;
+		//logo.y = (stage.stageHeight - logo.height) / 2;
 		sw = stage.stageWidth;
 		sh = stage.stageHeight;
 	}
