@@ -24,34 +24,33 @@ import phx.World;
 
 
 class Main extends Sprite {
-	
-	
+	// Storage of the NME logo bitmap
 	private var logo:Bitmap;
-	public static var sw:Int;
-	public static var sh:Int;
-	public static var ax:Float;
-	public static var ay:Float;
-	public static var az:Float;
+	//
 	public static var bData:BitmapData;
+
+	//
+	public static var sw:Int;
+	//
+	public static var sh:Int;
+	//
+	public static var ax:Float;
+	//
+	public static var ay:Float;
+	//
+	public static var az:Float;
 	static public inline var PHYSICS_SCALE:Float = 1 / 30;
 	var tilesheet:Tilesheet;
 	var drawList:Array<Float>;
-	var s:Sprite;
+	//var s:Sprite;
 	var rect:Rectangle;
 	private var world:World;
 	public static inline var BOX_SIZE:Int = 20;
 	public static var shape:Shape;
-	
-	public function new () {
-		super ();
-		addEventListener (Event.ADDED_TO_STAGE, this_onAddedToStage);
-	}
 
 	private function construct () {
-
 		stage.align = StageAlign.TOP_LEFT;
 		stage.scaleMode = StageScaleMode.NO_SCALE;
-		
 		bData = Assets.getBitmapData("assets/nme.png");
 		stage.addEventListener(MouseEvent.CLICK, logo_click);
 		
@@ -60,8 +59,8 @@ class Main extends Sprite {
 		var size = new AABB( -1000, -1000, 1000, 1000);
 		var bf = new SortedList();
 		world = new World(size, bf);
-		world.gravity = new Vector(0, 0.9);
-		world.sleepEpsilon = 0;
+		//world.gravity = new Vector(0, 0.9);
+		//world.sleepEpsilon = 0;
 		
 		createBox(-20, 0, 40, sh, false);
 		createBox(sw-20, 0, 40, sh, false);
@@ -72,9 +71,9 @@ class Main extends Sprite {
 		tilesheet = new Tilesheet(bData);
 		tilesheet.addTileRect(rect);
 		
-		s = new Sprite();
+		//s = new Sprite();
 		drawList = new Array<Float>();
-		addChild(s);
+		//addChild(s);
 		
 		for (i in 0...100) {
 			createBox(Math.random() * stage.stageWidth, Math.random() * stage.stageHeight, BOX_SIZE, BOX_SIZE, true);
@@ -100,10 +99,10 @@ class Main extends Sprite {
 		if (dynamicBody) {
 			var b:Body = new Body(x, y);
 			var shape:Shape = Shape.makeBox(width, height);
-			//shape.material.friction = 0.5;
-			b.addShape(shape);
-			
-			//b.addShape(new phx.Circle(width/2, new Vector(0,0)));
+			shape.material.friction = 0.5;
+			//b.addShape(shape);
+
+			b.addShape(new phx.Circle(width/2, new Vector(0,0)));
 			b.updatePhysics();
 			world.addBody(b);
 			return b;
@@ -128,57 +127,76 @@ class Main extends Sprite {
 		world.gravity.set(ax, ay);
 		#end
 		
-		world.step(0.5,3);
-		world.step(0.5,3);
-		//world.step(1,10);
+		//world.step(1,3);
+		//world.step(0.5,3);
+		world.step(1,10);
 		
-        //var g = nme.Lib.current.graphics;
-        //g.clear();
-        //var fd = new phx.FlashDraw(g);
-        //fd.drawCircleRotation = true;
-        //fd.drawWorld(world);
+        var g = nme.Lib.current.graphics;
+        g.clear();
+        var fd = new phx.FlashDraw(g);
+        fd.drawCircleRotation = true;
+        fd.drawWorld(world);
 		
 		var i = 0;
+		var box_sqrt = BOX_SIZE / Math.sqrt(2);
 		for (c in world.bodies) {
-			drawList[i++] = c.x - Math.cos(c.a+Math.PI/4) * BOX_SIZE / Math.sqrt(2);
-			drawList[i++] = c.y - Math.sin(c.a+Math.PI/4) * BOX_SIZE / Math.sqrt(2);
+			drawList[i++] = c.x - Math.cos(c.a+Math.PI/4) * box_sqrt;
+			drawList[i++] = c.y - Math.sin(c.a+Math.PI/4) * box_sqrt;
 			drawList[i++] = 0;
 			drawList[i++] = 0.15;
 			drawList[i++] = -c.a;
 		}
-		s.graphics.clear();
-		tilesheet.drawTiles(s.graphics, drawList, false, Tilesheet.TILE_SCALE | Tilesheet.TILE_ROTATION);
-		//s.graphics.drawTiles(tilesheet, drawList, false, Graphics.TILE_SCALE | Graphics.TILE_ROTATION);
+		this.graphics.clear();
+		tilesheet.drawTiles(this.graphics, drawList, false, Tilesheet.TILE_SCALE | Tilesheet.TILE_ROTATION);
 	}
 	
-	private function logo_click(e:MouseEvent):Void 
+	private function logo_click(e:MouseEvent):Void
 	{
-		//if (logo.hitTestPoint(e.stageX, e.stageY)) {
-			for (i in 0...50) {
-				var b = createBox(e.stageX, e.stageY, BOX_SIZE, BOX_SIZE, true);
-				b.setSpeed(Math.random()*20-10, Math.random()*20-10);
-			}
-		//}
+		for (i in 0...50) {
+			var b = createBox(e.stageX, e.stageY, BOX_SIZE, BOX_SIZE, true);
+			b.setSpeed(Math.random()*20-10, Math.random()*20-10);
+		}
 	}
 	
 	
 	private function resize () {
-		//logo.x = (stage.stageWidth - logo.width) / 2;
-		//logo.y = (stage.stageHeight - logo.height) / 2;
 		sw = stage.stageWidth;
 		sh = stage.stageHeight;
 	}
 	
+	/**
+	 *
+	 * @param	event
+	 */
 	private function stage_onResize (event:Event):Void {
-		resize ();
+		resize();
 	}
-	
-	private function this_onAddedToStage (event:Event):Void {
-		removeEventListener(Event.ADDED_TO_STAGE, this_onAddedToStage);
-		construct ();
-	}
-	
+
+	/**
+	 * Program execution entry function
+	 */
 	public static function main () {
+		// Add Main() class to the stage.
 		Lib.current.addChild (new Main ());
+	}
+
+	/**
+	 * Main class constructor function
+	 */
+	public function new () {
+		super ();
+		// Add a listener to wait for the stage to be available.
+		addEventListener (Event.ADDED_TO_STAGE, this_onAddedToStage);
+	}
+	
+	/**
+	 * Event.ADDED_TO_STAGE listener, insantiaites remainder of program.
+	 * @param	event
+	 */
+	private function this_onAddedToStage (event:Event):Void {
+		// Remove self as a listener.
+		removeEventListener(Event.ADDED_TO_STAGE, this_onAddedToStage);
+		// Call program constructor, which expects existing stage.
+		construct();
 	}
 }
