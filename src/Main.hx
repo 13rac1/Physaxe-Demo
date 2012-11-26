@@ -31,13 +31,15 @@ class Main extends Sprite {
 	public static var sw:Int;
 	// StageHeight
 	public static var sh:Int;
-
-	static public inline var PHYSICS_SCALE:Float = 1 / 30;
-	var tilesheet:Tilesheet;
-	var drawList:Array<Float>;
-	var rect:Rectangle;
-	private var world:World;
+	// Unused
+	//static public inline var PHYSICS_SCALE:Float = 1 / 30;
 	public static inline var BOX_SIZE:Int = 20;
+	// The image tilesheet
+	var tilesheet:Tilesheet;
+	// The tilesheet drawlist, what to draw
+	var drawList:Array<Float>;
+	// The physaxe world
+	private var world:World;
 
 	private function construct () {
 		// Setup stage.
@@ -66,7 +68,7 @@ class Main extends Sprite {
 		// Create a new Tilesheet using the bitmap logo data
 		tilesheet = new Tilesheet(bitmapLogo);
 		// Create a rectangle specifying the bitmap on the tilesheet (normally there is more than one image per tilesheet.
-		rect = new Rectangle (0, 0, bitmapLogo.width, bitmapLogo.height);
+		var rect = new Rectangle (0, 0, bitmapLogo.width, bitmapLogo.height);
 		// Add the Rectangle as the first Tile
 		tilesheet.addTileRect(rect);
 		
@@ -88,6 +90,15 @@ class Main extends Sprite {
 		stage.addEventListener(Event.ENTER_FRAME, update);
 	}
 	
+	/**
+	 * Create a dynamic/static rectangle Shape in a Body
+	 * @param	x
+	 * @param	y
+	 * @param	width
+	 * @param	height
+	 * @param	dynamicBody
+	 * @return	The created Body or null
+	 */
 	private function createBox (x:Float, y:Float, width:Float, height:Float, dynamicBody:Bool):Body {
 		if (dynamicBody) {
 			// Create a new phyaxe Body
@@ -114,8 +125,13 @@ class Main extends Sprite {
 		}
 	}
 	
-	private function update(e:Event) {
-		
+	/**
+	 * The onEnterFrame update function
+	 *
+	 * Updates physics, gravity via accelerometer data, and redraws the world.
+	 * @param	event
+	 */
+	private function update(event:Event) {
 		// If not Flash, attempt to use Accelerometer data
 		#if !flash
 		var acc = Accelerometer.get();
