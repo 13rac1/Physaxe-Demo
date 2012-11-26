@@ -31,9 +31,15 @@ class Main extends Sprite {
 	public static var sw:Int;
 	// StageHeight
 	public static var sh:Int;
-	// Unused
-	//static public inline var PHYSICS_SCALE:Float = 1 / 30;
+	
+	// Store the last time, for time difference calculations
+	public var lastTime:Int;
+	
+	// Physics scaling, adjust to mimic gravity
+	static public inline var PHYSICS_SCALE:Float = 100;
+	// Size of the boxes
 	public static inline var BOX_SIZE:Int = 20;
+	
 	// The image tilesheet
 	var tilesheet:Tilesheet;
 	// The tilesheet drawlist, what to draw
@@ -42,6 +48,7 @@ class Main extends Sprite {
 	private var world:World;
 
 	private function construct () {
+		Lib.trace("construct() called");
 		// Setup stage.
 		stage.align = StageAlign.TOP_LEFT;
 		stage.scaleMode = StageScaleMode.NO_SCALE;
@@ -49,10 +56,14 @@ class Main extends Sprite {
 		// Store stage height/width
 		resize ();
 		
+		// Create a new bounding box to limit the world
 		var size = new AABB( -1000, -1000, 1000, 1000);
+		// Create a sorted list to store the bodies.
 		var bf = new SortedList();
+		// Create the world
 		world = new World(size, bf);
-		world.gravity = new Vector(0, 0.9);
+		// Apply gravity.
+		world.gravity = new Vector(0, PHYSICS_SCALE);
 		//world.sleepEpsilon = 0;
 			
 		// Create world bounds.
@@ -72,17 +83,19 @@ class Main extends Sprite {
 		// Add the Rectangle as the first Tile
 		tilesheet.addTileRect(rect);
 		
-		// Create the initial 100 on-screen boxes.
-		for (i in 0...100) {
+		// Create the initial 40 on-screen boxes.
+		for (i in 0...40) {
 			createBox(Math.random() * stage.stageWidth, Math.random() * stage.stageHeight, BOX_SIZE, BOX_SIZE, true);
 		}
 				
 		// Add FPS display
 		var f = new FPS();
-		f.textColor = 0xFF0000;
+		f.textColor = 0xFFFFFF;
 		f.y = -3;
 		f.x = 20;
 		addChild(f);
+		// Init the last time value
+		lastTime = Lib.getTimer();
 
 		// Add Event listeners
 		stage.addEventListener(MouseEvent.CLICK, stage_onClick);
@@ -106,7 +119,7 @@ class Main extends Sprite {
 			// Create a new physaxe Shape, without a shape the body is nothing.
 			var shape:Shape = Shape.makeBox(width, height);
 			// Specify the friction coefficient of the shape
-			shape.material.friction = 0.5;
+			shape.material.friction = 0.1;
 			// Add the shape to the Body.
 			b.addShape(shape);
 
@@ -132,20 +145,29 @@ class Main extends Sprite {
 	 * @param	event
 	 */
 	private function update(event:Event) {
+		// Get the current timestamp
+		var nowTime:Int = Lib.getTimer();
+		// Get the time change since update() was last called, as seconds
+		var dTime:Float = (nowTime - lastTime) / 1000;
+		// Store the new last time
+		lastTime = nowTime;
+
 		// If not Flash, attempt to use Accelerometer data
 		#if !flash
 		var acc = Accelerometer.get();
 		if (acc != null) {
-			var ax = acc.x;
-			var ay = -acc.y;
+			var ax = PHYSICS_SCALE * acc.x;
+			var ay = PHYSICS_SCALE * -acc.y;
 			//var az = acc.z;
 			// Set gravity vector
 			world.gravity.set(ax, ay);
 		}
 		#end
 		
-		world.step(1,10);
+		// Update world physics, time X 4 to better simulate earth gravity
+		world.step(dTime * 4, 20);
 		
+		// The Physaxe debug world drawing
         //var g = nme.Lib.current.graphics;
         //g.clear();
         //var fd = new phx.FlashDraw(g);
@@ -173,11 +195,13 @@ class Main extends Sprite {
 	 * @param	event
 	 */
 	private function stage_onClick(event:MouseEvent):Void {
-		for (i in 0...50) {
+		var range = PHYSICS_SCALE * 3;
+		var delta = range / 2;
+		for (i in 0...10) {
 			// Create a new box at the mouse x/y
 			var b = createBox(event.stageX, event.stageY, BOX_SIZE, BOX_SIZE, true);
-			// Set a random speed/direction.
-			b.setSpeed(Math.random() * 20 - 10, Math.random() * 20 - 10);
+			// Set a random speed/direction based on PHYSICS_SCALE
+			b.setSpeed(Math.random() * range - delta, Math.random() * range - delta);
 		}
 	}
 	
@@ -204,6 +228,7 @@ class Main extends Sprite {
 	 * Program execution entry function
 	 */
 	public static function main () {
+		Lib.trace("Main() called");
 		// Add Main() class to the stage.
 		Lib.current.addChild (new Main ());
 	}
