@@ -36,7 +36,7 @@ class Main extends Sprite {
 	public var lastTime:Int;
 	
 	// Physics scaling, adjust to mimic gravity
-	static public inline var PHYSICS_SCALE:Float = 100;
+	static public inline var PHYSICS_SCALE:Float = 300;
 	// Size of the boxes
 	public static inline var BOX_SIZE:Int = 20;
 	
@@ -47,15 +47,22 @@ class Main extends Sprite {
 	// The physaxe world
 	private var world:World;
 
-	private function construct () {
+	/**
+	 * Event.ADDED_TO_STAGE listener, insantiaites remainder of program.
+	 * @param	event
+	 */
+	private function construct (event:Event) {
 		Lib.trace("construct() called");
+		// Remove self as a listener.
+		removeEventListener(Event.ADDED_TO_STAGE, construct);
+
 		// Setup stage.
 		stage.align = StageAlign.TOP_LEFT;
 		stage.scaleMode = StageScaleMode.NO_SCALE;
-		
+
 		// Store stage height/width
 		resize ();
-		
+
 		// Create a new bounding box to limit the world
 		var size = new AABB( -1000, -1000, 1000, 1000);
 		// Create a sorted list to store the bodies.
@@ -67,11 +74,11 @@ class Main extends Sprite {
 		//world.sleepEpsilon = 0;
 			
 		// Create world bounds.
-		createBox(-20, 0, 40, sh, false);
-		createBox(sw - 20, 0, 40, sh, false);
-		createBox(0, -20, sw, 40, false);
-		createBox(0, sh-20, sw, 40, false);
-		
+		createBox(-10, 0, 20, sh, false);
+		createBox(sw - 10, 0, 20, sh, false);
+		createBox(0, -10, sw, 20, false);
+		createBox(0, sh-10, sw, 20, false);
+
 		// Init drawList for drawTiles
 		drawList = new Array<Float>();
 		// Load logo bitmap image
@@ -87,7 +94,7 @@ class Main extends Sprite {
 		for (i in 0...40) {
 			createBox(Math.random() * stage.stageWidth, Math.random() * stage.stageHeight, BOX_SIZE, BOX_SIZE, true);
 		}
-				
+
 		// Add FPS display
 		var f = new FPS();
 		f.textColor = 0xFFFFFF;
@@ -165,14 +172,16 @@ class Main extends Sprite {
 		#end
 		
 		// Update world physics, time X 4 to better simulate earth gravity
-		world.step(dTime * 4, 20);
+		//world.step(dTime * 4, 20);
+		// Update world physics based on framerate
+		world.step(1 / stage.frameRate, 20);
 		
 		// The Physaxe debug world drawing
-        //var g = nme.Lib.current.graphics;
-        //g.clear();
-        //var fd = new phx.FlashDraw(g);
-        //fd.drawCircleRotation = true;
-        //fd.drawWorld(world);
+		//var g = nme.Lib.current.graphics;
+		//g.clear();
+		//var fd = new phx.FlashDraw(g);
+		//fd.drawCircleRotation = true;
+		//fd.drawWorld(world);
 		
 		// Create the drawList for drawTiles
 		var i = 0;
@@ -197,7 +206,7 @@ class Main extends Sprite {
 	private function stage_onClick(event:MouseEvent):Void {
 		var range = PHYSICS_SCALE * 3;
 		var delta = range / 2;
-		for (i in 0...10) {
+		for (i in 0...4) {
 			// Create a new box at the mouse x/y
 			var b = createBox(event.stageX, event.stageY, BOX_SIZE, BOX_SIZE, true);
 			// Set a random speed/direction based on PHYSICS_SCALE
@@ -239,17 +248,6 @@ class Main extends Sprite {
 	public function new () {
 		super ();
 		// Add a listener to wait for the stage to be available.
-		addEventListener (Event.ADDED_TO_STAGE, this_onAddedToStage);
-	}
-	
-	/**
-	 * Event.ADDED_TO_STAGE listener, insantiaites remainder of program.
-	 * @param	event
-	 */
-	private function this_onAddedToStage (event:Event):Void {
-		// Remove self as a listener.
-		removeEventListener(Event.ADDED_TO_STAGE, this_onAddedToStage);
-		// Call program constructor, which expects existing stage.
-		construct();
+		addEventListener (Event.ADDED_TO_STAGE, construct);
 	}
 }
